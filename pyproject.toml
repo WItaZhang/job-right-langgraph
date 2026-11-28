@@ -1,0 +1,53 @@
+[project]
+name = "job-right-langgraph"
+version = "0.1.0"
+description = "Review a job seeker's preference change before it lands: LangMem proposes, replay shows what it would hide, LangGraph pauses for approval, SQLite commits only on the current revision."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+authors = [{ name = "WItaZhang" }]
+dependencies = [
+    "filelock>=3.16,<4",
+    "langchain>=1.5,<2",
+    "langchain-core>=1.8,<2",
+    "langgraph>=1.2,<2",
+    "langgraph-checkpoint-sqlite>=3.1,<4",
+    "langmem>=0.0.30,<0.1",
+    "pydantic>=2.11,<3",
+]
+
+[project.urls]
+Inspiration = "https://github.com/WItaZhang/codex-job-agent"
+
+[project.scripts]
+job-right = "job_right.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/job_right"]
+
+[dependency-groups]
+dev = [
+    "langchain-openai>=1.8,<2",
+    "pytest>=9,<10",
+    "ruff>=0.15,<1",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["job_right"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

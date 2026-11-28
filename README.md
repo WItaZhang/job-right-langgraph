@@ -1,13 +1,45 @@
 # Job Right · Preference Replay
 
-A standalone project for reviewing changes to a job seeker's preferences. It grew out of [Job Right](https://github.com/WItaZhang/codex-job-agent), which filters and ranks job postings. This repository focuses on the moment a user changes a rule.
+Review a change to your job preferences before it reshapes your recommendations. Try a remote-only rule and see exactly which saved hybrid role it would hide, why it drops out, and which employer exception could keep it.
 
-Suppose a user who previously saved a hybrid role asks for remote-only recommendations. The proposed rule would hide a job they liked. The review should show them which job would disappear before they decide whether to keep the change.
+## Run the offline CLI demo
 
-## Workflow under development
+From a clone with [uv](https://docs.astral.sh/uv/) installed, run:
 
-1. Use LangMem and a LangChain Core model adapter to update a copy of the current profile from feedback. Keep the edit pending until the user reviews its effect.
-2. Replay the old and proposed rules against the same set of rated jobs. Show which previously wanted jobs the change would hide.
-3. Pause the LangGraph workflow for approval. On approval, compare the reviewed profile version with the current version in SQLite before saving.
+```sh
+uv run --locked job-right demo
+```
 
-The planned demo uses fictional listings and ratings and runs locally. The [original LangMem profile updater](https://github.com/WItaZhang/codex-job-agent/blob/c53e782b8a0db0f48be8abb019098fb827c31d1e/src/applypilot_agent/evaluation/profile_memory_strategies.py#L32-L53) and the [LangChain Core adapter](https://github.com/WItaZhang/codex-job-agent/blob/c53e782b8a0db0f48be8abb019098fb827c31d1e/src/applypilot_agent/evaluation/profile_memory_codex.py) live in the original project.
+The demo initializes a temporary SQLite workspace with 14 synthetic listings, eight earlier ratings, and one fictional profile. Each step runs in a fresh process. Watch the Fernhill Freight review, reject the first rule, approve a narrower change, and retry an older proposal against the updated profile.
+
+For a persistent workspace, run these commands from the same directory:
+
+```sh
+uv run --locked job-right init
+uv run --locked job-right recommend
+uv run --locked job-right propose --id remote "Only show me remote roles."
+uv run --locked job-right show remote
+uv run --locked job-right approve remote
+uv run --locked job-right profile
+uv run --locked job-right history
+```
+
+Use `reject ID` to decline a proposal. Pass `--data-dir PATH` to choose a workspace (default `.job-right/`) and `--json` for machine-readable output.
+
+## Model and storage
+
+The default model is a deterministic offline fixture, not an LLM. It recognizes phrases such as “Add Rust to my preferred skills,” “Raise my salary floor to $160k,” and “Hybrid roles are fine again.” LangMem uses the existing typed profile as its single memory. A real LangGraph workflow replays the proposed changes against the same earlier ratings and pauses for review in SQLite.
+
+An explicit `propose --model provider:model "feedback"` uses the named LangChain provider. Supply its integration and credentials, or configure an OpenAI-compatible local server with `OPENAI_BASE_URL` and an appropriate `OPENAI_API_KEY`. The model receives the profile and feedback. The listings and replay run locally. Remote LangSmith tracing requires an explicit `JOB_RIGHT_ALLOW_LANGSMITH=1` plus your tracing configuration. No paid model is required for the demo or tests.
+
+An approval carries the reviewed candidate digest. A single SQLite transaction saves that exact candidate only while its base revision is current. Concurrent or retried decisions return the first recorded result. A stale review can be proposed again against the latest profile.
+
+## Verify
+
+```sh
+./.claude/verify.sh
+```
+
+This runs locked Ruff lint, format checks and pytest, including subprocess resume, racing decisions, crash recovery and a live-provider adapter against a loopback test stub.
+
+This project grew out of [Job Right](https://github.com/WItaZhang/codex-job-agent). See the [workflow specification](SPEC.md) and [license](LICENSE).
