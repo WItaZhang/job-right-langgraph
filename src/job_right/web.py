@@ -126,7 +126,6 @@ def create_app(data_dir: Path, model="fixture"):
     app.jinja_env.globals.update(
         token=token,
         examples=EXAMPLES,
-        fields=FIELDS,
         model_label=model_label,
         fixture=model_label.startswith("fixture"),
         new_id=lambda: uuid4().hex,
@@ -176,22 +175,24 @@ def create_app(data_dir: Path, model="fixture"):
         except ProposalIdInUse:
             if wf.store.has_proposal(proposal_id) and wf.store.proposal(proposal_id).feedback == feedback:
                 return redirect(url_for("review", proposal_id=proposal_id), 303)
-            flash("This form has already been used. Preview your feedback again.", "notice")
+            flash("This form has already been used. Preview your feedback again.", "studio")
         else:
             if result.proposal:
                 return redirect(url_for("review", proposal_id=result.proposal.id), 303)
-            flash(result.outcome.message, "notice")
+            flash(result.outcome.message, "studio")
         return redirect(url_for("matches", example=feedback, _anchor="studio"), 303)
 
     @app.get("/reviews/<proposal_id>")
     def review(proposal_id):
         store = workflow().store
         p = store.proposal(proposal_id)
+        jobs = store.jobs()
         return render_template(
             "review.html",
             p=p,
             current=store.current(),
-            effects=_effects(p, store.jobs()),
+            effects=_effects(p, jobs),
+            jobs={j.id: j for j in jobs},
             labels={v.job_id: v for v in store.labels()},
         )
 

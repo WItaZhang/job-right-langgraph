@@ -44,7 +44,7 @@ _REPAIR_TARGET = re.compile(r"json_doc_id=\[(?P<id>[^\]]+)\]")
 
 _REMOTE_ONLY = re.compile(r"\b(?:only|just)\b[^.;]*\bremote\b|\bremote[- ]only\b", re.I)
 _HYBRID_OK = re.compile(r"\bhybrid\b[^.;]*\b(?:fine|ok|okay|acceptable)\b", re.I)
-_KEEP_EMPLOYER_HYBRID = re.compile(r"\bkeep ([A-Z][\w&-]*(?:\s+(?:&\s+)?[A-Z][\w&-]*)*?)'s hybrid roles")
+_KEEP_EMPLOYER_HYBRID = re.compile(r"\bkeep ([\w&-]+(?:\s+(?:&\s+)?[\w&-]+)*?)['’]s hybrid roles", re.I)
 _SALARY_CONTEXT = re.compile(r"\b(?:salary|floor|pay|paying|at least|minimum|under)\b", re.I)
 _MONEY = re.compile(r"\$\s?(\d{1,3}(?:,\d{3})+|\d+)\s*(k)?\b|\b(\d+)\s*(k)\b", re.I)
 _ADD_SKILL = re.compile(r"\badd ([\w+#.-]+?) to (?:my )?(?:preferred )?skills\b", re.I)
@@ -106,8 +106,11 @@ def _rules(feedback: str, patcher: _Patcher) -> None:
     if _HYBRID_OK.search(feedback) and "hybrid" not in patcher.doc["work_modes"]:
         patcher.append("work_modes", "hybrid", "allow hybrid again")
     for name in _KEEP_EMPLOYER_HYBRID.findall(feedback):
-        modes = [m for m in WORK_MODES if m in {*patcher.doc["work_modes"], "hybrid"}]
-        patcher.put("employer_exceptions", employer_key(name), {"work_modes": modes}, f"exception for {name}")
+        key = employer_key(name)
+        existing = patcher.doc["employer_exceptions"].get(key, {})
+        allowed = {*existing.get("work_modes", patcher.doc["work_modes"]), "hybrid"}
+        modes = [mode for mode in WORK_MODES if mode in allowed]
+        patcher.put("employer_exceptions", key, {"work_modes": modes}, f"exception for {name}")
     if _SALARY_CONTEXT.search(feedback):
         amount = _money(feedback)
         if amount is not None and amount != patcher.doc["min_salary"]:

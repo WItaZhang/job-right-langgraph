@@ -1,21 +1,41 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Workspace{% endblock %} · Job Right</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='workspace.css') }}">
-<link rel="icon" href="data:,">
-<script src="{{ url_for('static', filename='workspace.js') }}" defer></script>
-</head><body>
-<a class="skip" href="#main">Skip to content</a>
-<header class="mast"><div class="frame mast-inner">
-<a class="brand" href="{{ url_for('matches') }}" aria-label="Job Right home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Job Right</a>
-<nav aria-label="Workspace">{% for endpoint, name in [('matches','Matches'),('preferences','Preferences'),('activity','Activity')] %}
-<a href="{{ url_for(endpoint) }}" {% if request.endpoint == endpoint or (endpoint=='activity' and request.endpoint=='review') %}aria-current="page"{% endif %}>{{ name }}</a>{% endfor %}</nav>
-<span class="model"><span></span>{{ 'Offline fixture' if fixture else model_label }}</span>
-</div></header>
-<main class="frame" id="main" tabindex="-1">
-{% with messages=get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<p class="notice" role="status">{{ message }}</p>{% endfor %}{% endwith %}
-{% block main %}{% endblock %}
-</main>
-<footer class="frame footer"><span>Job Right</span><span>Local workspace <b>·</b> Synthetic listings and ratings</span></footer>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Workspace{% endblock %} · Job Right</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='workspace.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='mark.png') }}">
+    <script src="{{ url_for('static', filename='workspace.js') }}" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="mast">
+      <div class="frame mast-inner">
+        <a class="brand"
+           href="{{ url_for('matches') }}"
+           aria-label="Job Right home">
+          <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Job Right
+        </a>
+        <nav aria-label="Workspace">
+          {% for endpoint, name in [('matches', 'Matches'), ('preferences', 'Preferences'), ('activity', 'Activity')] %}
+            <a href="{{ url_for(endpoint) }}"
+               {% if request.endpoint == endpoint or (endpoint == 'activity' and request.endpoint == 'review') %}aria-current="page"{% endif %}>{{ name }}</a>
+          {% endfor %}
+        </nav>
+        <span class="model"><span></span>{{ 'Offline fixture' if fixture else model_label }}</span>
+      </div>
+    </header>
+    <main class="frame" id="main" tabindex="-1">
+      {% for message in get_flashed_messages(category_filter=['notice']) %}
+        <p class="notice" role="status">{{ message }}</p>
+      {% endfor %}
+      {% block main %}{% endblock %}
+    </main>
+    <footer class="frame footer">
+      <span>Job Right</span>
+      <span>Local workspace <b>·</b> Synthetic listings and ratings</span>
+    </footer>
+  </body>
+</html>

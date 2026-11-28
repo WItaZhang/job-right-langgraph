@@ -11,7 +11,7 @@ Show, end to end and offline, how a job seeker's preference change is proposed b
 - Ask first: any publication other than a fast-forward push of this repo's `origin/main` after clean-clone verification.
 
 ## Key decisions
-- Package `job_right` (src layout, uv, Python >=3.11,<3.14, committed `uv.lock`). CLI `job-right` with `init | profile | recommend | propose | show | approve | reject | history | demo`, plus `--data-dir` (default `./.job-right`).
+- Package `job_right` (src layout, uv, Python >=3.11,<3.14, committed `uv.lock`). CLI `job-right` with `init | profile | recommend | propose | show | approve | reject | history | demo`, plus `web` for the local product and `--data-dir` (default `./.job-right`).
 - Graph: `StateGraph` with a `TypedDict` state holding JSON-native values only. The chat model and store reach nodes through LangGraph runtime context and are never checkpointed. Nodes: `load_profile → propose_update → validate_candidate → (no change → END) → replay_labels → record_proposal → human_review (interrupt) → commit_decision`. Checkpointer: `SqliteSaver` on `checkpoints.sqlite`; thread id = proposal id.
 - Proposal stage: a real `langmem.create_memory_manager(model, schemas=[JobSeekerProfile], enable_inserts=False, enable_updates=True, enable_deletes=False)`. Its single existing memory is the previous typed profile, and the feedback arrives as messages built with a LangChain Core `ChatPromptTemplate`. The validated candidate minus the current profile gives the typed edit (`list[ProfileChange]`).
 - Model is any LangChain Core `BaseChatModel`. The default is `FixtureChatModel`: deterministic regex rules that answer trustcall's `PatchDoc` tool call. It is labelled "fixture, not an LLM" in code, CLI output and README. The opt-in live path is `--model provider:name` via `langchain.chat_models.init_chat_model` with the user's own credentials or a local OpenAI-compatible server.
@@ -44,10 +44,10 @@ Show, end to end and offline, how a job seeker's preference change is proposed b
 - 2026-11-21 · Coordinator review → case 7 adds a reversal of an approved preference; case 5 adds "racing decisions persist only the reviewed candidate" (approval carries the reviewed candidate's digest).
 - 2026-11-22 · Test-mapping review → example 1 names the actual fixture employer (Fernhill Freight); agreement figures in tests describe the synthetic fixtures only.
 
+- 2026-11-28 · Owner added the local Web product and loopback browser acceptance. On the first 390px browser pass, the studio started 1,680px below the top. The revised home page puts a studio link in the first viewport.
+
 ## Local Web product
 - `job-right web` initializes an empty synthetic workspace and serves it on 127.0.0.1. Refreshing a review reloads its saved candidate, replay and decision. Writes require a same-site form token and a trusted local host.
 - Browse ranked and filtered listings, inspect saved preferences, try fixture feedback examples, compare changes and individual jobs, then approve or reject. Decision history links back to each review.
 - Preserve the candidate digest from the displayed form. A stale approval offers a fresh preview with the original feedback. An earlier decision remains authoritative on resubmission.
 - Verify desktop and narrow-screen flows in a real browser, including refresh, rejection, approval and conflicts between reviews.
-
-2026-11-28 · Owner added a local Web product and local browser acceptance to the original CLI scope.

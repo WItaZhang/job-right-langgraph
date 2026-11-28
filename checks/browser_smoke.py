@@ -48,8 +48,14 @@ def workspace():
 
 
 def scenario(browser, width, height, screenshots):
-    with workspace() as url, browser.new_context(viewport={"width": width, "height": height}) as context:
+    with (
+        workspace() as url,
+        browser.new_context(
+            viewport={"width": width, "height": height}, is_mobile=width < 680, has_touch=width < 680
+        ) as context,
+    ):
         errors = []
+        context.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
         context.on("weberror", lambda exc: errors.append(str(exc.error)))
         page = context.new_page()
         page.goto(url)
@@ -67,9 +73,15 @@ def scenario(browser, width, height, screenshots):
 
         expect(page.get_by_role("link", name="Matching 9")).to_be_visible()
         capture("matches")
-        print(f"{width}px studio begins {round(page.locator('#studio').bounding_box()['y'])}px down the page")
         page.keyboard.press("Tab")
         expect(page.get_by_role("link", name="Skip to content")).to_be_focused()
+        if width < 680:
+            jump = page.get_by_role("link", name="Preview a change", exact=True)
+            expect(jump).to_be_in_viewport()
+            print(f"{width}px first-screen studio link at y={round(jump.bounding_box()['y'])}px")
+            jump.click()
+            expect(page.get_by_label("Your feedback")).to_be_in_viewport()
+            capture("studio")
         page.get_by_role("link", name="Filtered 5").click()
         expect(page.get_by_text("Marigold Gaming")).to_be_visible()
         page.get_by_role("link", name="Preferences", exact=True).click()
@@ -86,6 +98,9 @@ def scenario(browser, width, height, screenshots):
         page.get_by_role("link", name="Matches", exact=True).click()
         page.get_by_role("link", name="Resume latest review").click()
         expect(page).to_have_url(first)
+        if width < 680:
+            page.get_by_role("link", name="Go to decision").click()
+            expect(page.get_by_role("button", name="Reject change")).to_be_in_viewport()
         page.get_by_role("button", name="Reject change").click()
         expect(page.get_by_text("Review rejected.", exact=True)).to_be_visible()
 
@@ -95,6 +110,8 @@ def scenario(browser, width, height, screenshots):
         other = context.new_page()
         other.goto(url)
         example(other, "Prefer Rust")
+        other.locator(".effects summary").click()
+        expect(other.locator(".effects")).to_contain_text("Preferred skills matched")
         other.get_by_role("button", name="Approve change").click()
         expect(other.get_by_text("Saved as profile v2.")).to_be_visible()
         page.get_by_role("button", name="Approve change").click()
@@ -116,6 +133,33 @@ def scenario(browser, width, height, screenshots):
         expect(page.locator(".revision")).to_have_count(3)
         expect(page.locator(".entry .stale")).to_have_count(1)
         expect(page.locator(".entry .rejected")).to_have_count(1)
+        # Follow the concrete repair from the warning and confirm the corrected candidate in a fresh review.
+        page.get_by_role("link", name="Matches", exact=True).click()
+        example(page, "Remote only")
+        page.get_by_role("link", name="Try a Fernhill Freight exception").click()
+        expect(page.get_by_label("Your feedback")).to_have_value(
+            "Only show me remote roles, but keep Fernhill Freight's hybrid roles."
+        )
+        page.get_by_role("button", name="Preview change").click()
+        expect(page.locator(".edit")).to_contain_text(["Work arrangement", "Fernhill Freight"])
+        expect(page.get_by_text("Saved jobs newly hidden")).to_have_count(0)
+        page.get_by_role("button", name="Approve change").click()
+        page.get_by_role("link", name="View job matches").click()
+        expect(page.locator(".job").filter(has_text="Senior Backend Engineer").first).to_contain_text(
+            "Fernhill Freight"
+        )
+
+        # Unsupported feedback remains editable next to its status message, including on mobile.
+        page.get_by_label("Your feedback").fill("Tell me a joke")
+        page.get_by_role("button", name="Preview change").click()
+        expect(page.get_by_role("status")).to_be_in_viewport()
+        expect(page.get_by_label("Your feedback")).to_have_value("Tell me a joke")
+        page.get_by_label("Your feedback").fill("Raise my salary floor to $900k.")
+        page.get_by_role("button", name="Preview change").click()
+        page.get_by_role("button", name="Approve change").click()
+        page.get_by_role("link", name="View job matches").click()
+        expect(page.get_by_role("heading", name="No matching listings")).to_be_visible()
+        expect(page.get_by_role("link", name="Filtered 14")).to_be_visible()
         assert not errors, errors
         print(f"{width}×{height}: preview, resume, reload, decisions, conflict recovery and history passed.")
 

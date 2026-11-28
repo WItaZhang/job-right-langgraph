@@ -15,9 +15,9 @@ Open **[Job Right on this computer](http://127.0.0.1:8765/)**. The first launch 
 ### Try a review
 
 1. Browse **Matches**, switch to **Filtered** to see why a listing was excluded, then open **Preferences** to inspect the saved profile.
-2. In **Preference studio**, choose **Remote only** and **Preview change**. Compare the old and proposed work arrangements. Fernhill Freight’s saved hybrid role would disappear. Refresh the page or reopen the latest pending review from Matches.
-3. Choose **Reject change**. Profile v1 remains available in Preferences. Try **Keep Fernhill** to preview the remote-only rule with an employer exception. Approve it, then inspect the updated matches and the saved revision in **Activity**.
-4. To try a version conflict, leave a **Salary floor** review pending. Open Matches in a second tab, preview **Prefer Rust** and approve it. Return to the first tab and approve the older review. Use **Use this feedback** to generate a fresh preview from the current profile.
+2. On a narrow screen, tap **Preview a change** to jump to **Preference studio**. In the studio, choose **Remote only** and **Preview change**. Compare the old and proposed work arrangements. Fernhill Freight’s saved hybrid role would disappear. Expand **Listing changes** to see ranks and filter reasons. Refresh the page or reopen the latest pending review from Matches.
+3. Choose **Reject change**. Profile v1 remains available in Preferences. Try **Keep Fernhill** (also available as a suggested exception in a pending review) to preview the remote-only rule with an employer exception. Approve it, then inspect the updated matches and the saved revision in **Activity**.
+4. To try a version conflict, leave a **Salary floor** review pending. Open Matches in a second tab, preview **Prefer Rust** and approve it. Return to the first tab and approve the older review. Select **Use this feedback** to generate a fresh preview from the current profile.
 
 The Web UI and CLI share the same files, LangMem manager, LangGraph checkpoints and decision transaction. The server binds to loopback and checks the host, origin and form token for writes. Jobs, employers and prior ratings in this workspace are synthetic.
 
@@ -31,7 +31,7 @@ uv run --locked job-right demo
 
 The demo initializes a temporary SQLite workspace with 14 synthetic listings, eight earlier ratings, and one fictional profile. Each step runs in a fresh process. Watch the Fernhill Freight review, reject the first rule, approve a narrower change, and retry an older proposal against the updated profile.
 
-For a persistent workspace, run these commands from the same directory:
+For a persistent workspace, run these commands from the same directory. Skip `init` if the Web product has already created the workspace:
 
 ```sh
 uv run --locked job-right init

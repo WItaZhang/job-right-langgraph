@@ -64,3 +64,15 @@ def test_no_change_restores_input_and_leaves_no_pending_item(client, data_dir):
     assert data["feedback"] in html
     with Workflow(data_dir) as wf:
         assert wf.store.proposals() == []
+
+
+def test_keeping_one_employers_hybrid_roles_preserves_its_existing_onsite_exception(client, data_dir):
+    data = {
+        **form(client),
+        "feedback": "Only show me remote roles, but keep Cobalt Orchard Health's hybrid roles.",
+    }
+    assert client.post("/reviews", data=data).status_code == 303
+    with Workflow(data_dir) as wf:
+        review = wf.pending(data["proposal_id"])
+        assert review.proposed.work_modes == ["remote"]
+        assert review.proposed.employer_exceptions == review.current.employer_exceptions

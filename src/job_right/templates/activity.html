@@ -1,6 +1,50 @@
-{% extends "base.html" %}{% block title %}Review activity{% endblock %}
-{% block main %}<div class="pagehead"><div><h1>Review activity</h1><p>Resume a pending review or revisit a decision.</p></div><a class="primary" href="{{ url_for('matches', _anchor='studio') }}">New preview →</a></div>
-<div class="board"><section><h2>Preference reviews</h2><div class="panel timeline">{% for p in proposals %}
-<a class="entry" href="{{ url_for('review', proposal_id=p.id) }}"><div><span class="status {{ p.status }}">{{ p.status|capitalize }}</span><h3>{{ p.feedback }}</h3><small>Based on v{{ p.base_revision }}{% if p.applied_revision %} · Saved as v{{ p.applied_revision }}{% endif %}</small></div><span>→</span></a>
-{% else %}<div class="empty"><h3>No reviews yet</h3><p>Try “Remote only” in the preference studio to create your first review.</p></div>{% endfor %}</div></section>
-<aside><h2>Saved revisions</h2><div class="panel timeline">{% for r in revisions %}<div class="revision"><strong>Profile v{{ r.revision }}</strong> <small>{{ r.created_at[:10] }}</small><br>{% if r.proposal_id %}<a href="{{ url_for('review', proposal_id=r.proposal_id) }}">View approved change →</a>{% else %}Initial synthetic profile{% endif %}</div>{% endfor %}</div></aside></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Review activity{% endblock %}
+{% block main %}
+  <div class="pagehead">
+    <div>
+      <h1>Review activity</h1>
+      <p>Resume a pending review or revisit a decision.</p>
+    </div>
+    <a class="primary" href="{{ url_for('matches', _anchor='studio') }}">New preview →</a>
+  </div>
+  <div class="board">
+    <section>
+      <h2>Preference reviews</h2>
+      <div class="panel timeline">
+        {% for p in proposals %}
+          <a class="entry" href="{{ url_for('review', proposal_id=p.id) }}">
+            <div>
+              <span class="status {{ p.status }}">{{ p.status|capitalize }}</span>
+              <h3>{{ p.feedback }}</h3>
+              <small>Based on v{{ p.base_revision }}{% if p.applied_revision %} · Saved as v{{ p.applied_revision }}{% endif %}
+              </small>
+            </div>
+            <span>→</span>
+          </a>
+        {% else %}
+          <div class="empty">
+            <h3>No reviews yet</h3>
+            <p>Try “Remote only” in the preference studio to create your first review.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    <aside>
+      <h2>Saved revisions</h2>
+      <div class="panel timeline">
+        {% for r in revisions %}
+          <div class="revision">
+            <strong>Profile v{{ r.revision }}</strong> <small>{{ r.created_at[:10] }}</small>
+            <br>
+            {% if r.proposal_id %}
+              <a href="{{ url_for('review', proposal_id=r.proposal_id) }}">View approved change →</a>
+            {% else %}
+              Initial synthetic profile
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </aside>
+  </div>
+{% endblock %}

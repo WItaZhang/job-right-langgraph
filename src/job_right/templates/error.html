@@ -1,3 +1,13 @@
-{% extends "base.html" %}{% block title %}Workspace error{% endblock %}{% block main %}
-<div class="pagehead"><div><span class="tag">Error {{ code }}</span><h1>Unable to finish</h1><p>{{ message }}</p></div></div>
-<a class="primary" href="{{ url_for('matches') }}">Return to matches →</a> <a class="back" href="{{ url_for('activity') }}">Check activity</a>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Workspace error{% endblock %}
+{% block main %}
+  <div class="pagehead">
+    <div>
+      <span class="tag">Error {{ code }}</span>
+      <h1>Unable to finish</h1>
+      <p>{{ message }}</p>
+    </div>
+  </div>
+  <a class="primary" href="{{ url_for('matches') }}">Return to matches →</a>
+  <a class="back" href="{{ url_for('activity') }}">Check activity</a>
+{% endblock %}

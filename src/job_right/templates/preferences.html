@@ -1,4 +1,22 @@
-{% extends "base.html" %}{% block title %}Saved preferences{% endblock %}
-{% block main %}<div class="pagehead"><div><span class="tag">Profile v{{ current.revision }}</span><h1>Saved preferences</h1><p>The rules used for your current job matches.</p></div><a class="primary" href="{{ url_for('matches', _anchor='studio') }}">Preview a change →</a></div>
-<dl class="prefs panel">{% for key,value in current.profile.model_dump(mode='json').items() %}
-<div><dt>{{ key|field_name }}</dt><dd>{{ value|pretty(key) }}</dd></div>{% endfor %}</dl>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Saved preferences{% endblock %}
+{% block main %}
+  <div class="pagehead">
+    <div>
+      <span class="tag">Profile v{{ current.revision }}</span>
+      <h1>Saved preferences</h1>
+      <p>The rules used for your current job matches.</p>
+    </div>
+    <a class="primary" href="{{ url_for('matches', _anchor='studio') }}">Preview a change →</a>
+  </div>
+  <dl class="prefs panel">
+    {% for key,value in current.profile.model_dump(mode='json').items() %}
+      <div>
+        <dt>{{ key|field_name }}</dt>
+        <dd>
+          {{ value|pretty(key) }}
+        </dd>
+      </div>
+    {% endfor %}
+  </dl>
+{% endblock %}
