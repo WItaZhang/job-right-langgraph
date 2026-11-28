@@ -34,7 +34,7 @@ class PrivateBlob:
     def read(self, name):
         response = httpx.get(
             f"{self.origin}/workspaces/{name}.zip",
-            params={"read": secrets.token_hex(8)},
+            params={"cache": "0"},  # Private Blob consistent read, including immediately after a write.
             headers=self.headers,
             timeout=20,
         )

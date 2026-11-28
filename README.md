@@ -82,7 +82,7 @@ For model-assisted writing locally, start with `web --writer-model provider:mode
 
 ## Hosted workspace
 
-The public Flask app uses a signed, secure browser cookie to identify a private workspace. Vercel Private Blob stores its application database and LangGraph checkpoint database together with conditional writes. Public visitors can use the sample catalog or supply their own job description and base résumé. Keep the cookie to reopen saved work in this browser. The local CLI continues to use its own SQLite directory.
+[Open the hosted product](https://job-right-langgraph.vercel.app/). The public Flask app uses a signed, secure browser cookie to identify a private workspace. Vercel Private Blob stores its application database and LangGraph checkpoint database together with conditional writes. Public visitors can use the sample catalog or supply their own job description and base résumé. Keep the cookie to reopen saved work in this browser. The local CLI continues to use its own SQLite directory.
 
 The production entry point is `app.py`. Set a stable random `JOB_RIGHT_SESSION_KEY` and connect a private Blob store with `BLOB_READ_WRITE_TOKEN`. The hosted product uses offline rules. Job descriptions and applicant materials stay inside the visitor’s hosted workspace.
 
