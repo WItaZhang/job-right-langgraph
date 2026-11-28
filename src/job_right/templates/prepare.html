@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Prepare documents{% endblock %}
+{% block main %}
+<a class="back" href="{{ url_for('documents') }}">← Documents</a>
+<div class="pagehead reviewhead"><div><h1>Tailor your documents</h1>
+<p>{% if target %}{{ target.title }} · {{ target.employer }}{% else %}Bring the job description and the résumé you want to start from.{% endif %}</p></div></div>
+{% set values = draft|default({}) %}
+<form class="compose" enctype="multipart/form-data" action="{{ url_for('create_packet') }}" method="post" data-busy="Preparing documents…">
+<input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="id" value="{{ new_id() }}">
+<input type="hidden" name="target_id" value="{{ target.id if target else '' }}"><input type="hidden" name="revision" value="{{ revision }}">
+<section class="panel block">
+{% if problem %}<p class="notice" role="alert">{{ problem }}</p>{% endif %}
+{% if not target %}
+<h2>The role</h2>
+<div class="split"><label>Job title<input required name="title" maxlength="150" value="{{ values.get('title','') }}" placeholder="Backend Engineer"></label>
+<label>Company<input required name="employer" maxlength="150" value="{{ values.get('employer','') }}" placeholder="Company name"></label></div>
+<label>Job description<textarea required name="description" rows="4" maxlength="12000" placeholder="Paste the responsibilities and requirements.">{{ values.get('description','') }}</textarea></label>
+<details><summary>Priority terms</summary><label>Skills or phrases to emphasize<input name="terms" maxlength="320" value="{{ values.get('terms','') }}" placeholder="Python, reconciliation, stakeholder interviews"></label></details>
+{% endif %}
+<div class="doc-heading"><h2>Base résumé</h2><button type="button" class="text-action" id="load-sample">Use fictional example</button></div>
+<p class="sub">Start with your name. Keep employer headings and use a dash for each accomplishment.</p>
+<label for="base">Résumé text</label>
+<textarea name="base" id="base" rows="10" maxlength="24000" placeholder="Your name&#10;&#10;Experience&#10;Job title | Employer&#10;- An accomplishment you can discuss in an interview.">{{ values.get('base', prior.base if prior else '') }}</textarea>
+<template id="sample-resume">{{ sample }}</template>
+<details class="import-box"><summary>Import existing files</summary>
+<label>Base résumé file<input type="file" name="resume_file" accept=".txt,.md{% if converter %},.tex{% endif %}"></label>
+<p class="sub">Text or Markdown{% if converter %}, or a Resume and Interview TeX source{% endif %}. A selected file replaces the pasted text.</p>
+<label>Existing cover letter (optional)<input type="file" name="letter_file" accept=".txt,.md"></label>
+<p class="sub">Import your approved letter.txt to keep its wording. Otherwise a letter is drafted from the tailored résumé.</p></details>
+<details><summary>Personalize the opening</summary><label>Why this role?<textarea name="motivation" rows="2" maxlength="900" placeholder="What drew you to this team or its work?">{{ values.get('motivation', '') }}</textarea></label>
+<p class="sub">Your sentence appears in the opening paragraph.</p></details>
+{% if writer_model %}<label class="writer-option"><input type="checkbox" name="use_writer" value="1">Use {{ writer_model }} for this pair</label><p class="sub">Sends the role, experience bullets and opening note to that provider for writing and a second factual review.</p>{% endif %}
+<button class="primary" type="submit">Prepare résumé &amp; letter →</button>
+</section>
+<aside class="panel block"><h2>{{ 'Role brief' if target else 'What gets saved' }}</h2>
+{% if target %}<p>{{ target.description }}</p><div class="skills">{% for s in target.skills %}<span>{{ s }}</span>{% endfor %}</div>
+<a class="materials-link" href="{{url_for('job_brief',target_id=target.id)}}">Download job brief ↓</a>{% else %}<p>Both documents are saved together. Your base résumé will be available for the next role.</p>{% endif %}
+<p class="studio-note">{{ 'Saved to a private workspace for this browser. Clearing its cookie removes your access.' if hosted else 'Stored in this local workspace.' }} Drafting uses the experience you supply.</p></aside>
+</form>
+{% endblock %}

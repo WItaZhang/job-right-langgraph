@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ p.target.title }} documents{% endblock %}
+{% block main %}
+<a class="back" href="{{ url_for('documents') }}">← Documents</a>
+<div class="pagehead reviewhead"><div><span class="tag">{{ p.target.employer }} · v{{ p.revision }}</span>
+<h1>{{ p.target.title }}</h1></div><a class="secondary" href="{{url_for('packet_export',packet_id=p.id,kind='bundle')}}">Download both ↓</a></div>
+<div class="doc-layout"><section>
+<div class="document-tabs"><a href="{{url_for('packet_view',packet_id=p.id)}}" {% if not letter %}aria-current="page"{% endif %}>Résumé</a>
+<a href="{{url_for('packet_view',packet_id=p.id,tab='letter')}}" {% if letter %}aria-current="page"{% endif %}>Cover letter</a></div>
+<article class="paper">{% include 'document_body.html' %}</article>
+<div class="paper-actions"><a href="{{url_for('packet_export',packet_id=p.id,kind='letter' if letter else 'resume')}}">Download text ↓</a>
+<a href="{{url_for('packet_print',packet_id=p.id,kind='letter' if letter else 'resume')}}">Print / PDF ↗</a></div>
+{% if p.id==history[0].id %}
+<details class="panel block edit-document" {% if problem %}open{% endif %}><summary>Edit {{ 'cover letter' if letter else 'résumé' }}</summary>
+{% if problem %}<p role="alert" class="notice">{{problem}}</p>{% endif %}
+<form data-busy="Saving version…" method="post" action="{{url_for('packet_edit',packet_id=p.id, document='letter' if letter else 'resume')}}">
+<input type="hidden" name="id" value="{{new_id()}}"><input type="hidden" name="token" value="{{token}}">
+<label>Document text<textarea name="text" rows="14" required>{{edit_text|default(p.letter if letter else p.resume)}}</textarea></label>
+<button class="primary" type="submit">{{ 'Save letter' if letter else 'Save résumé & refresh letter' }}</button></form></details>
+{% endif %}</section><aside>
+<section class="panel block"><h2>Evidence used</h2>{% if p.writer %}<p class="sub">Writing model · {{ p.writer }}</p>{% endif %}
+{% if p.manual_letter %}<p>Author-edited letter. Check its claims against this résumé before using it.</p>{% else %}
+{% for c in p.citations %}<div class="fact"><small>Résumé · line {{ c.line }}</small><p>{{ c.quote }}</p></div>{% endfor %}{% endif %}
+{% if gaps %}<div class="studio-note"><strong>Unmatched terms</strong><p>{{ gaps|join(', ') }}. Add a supporting example only if you have one.</p></div>{% endif %}</section>
+<section class="panel block"><h2>Versions</h2>{% for v in history %}
+<a class="version-link" href="{{url_for('packet_view',packet_id=v.id,tab='letter' if letter else 'resume')}}">Version {{ v.revision }}{% if loop.first %} · Latest{% endif %}</a>
+{% endfor %}<a class="materials-link" href="{{url_for('prepare',job=p.target.id,new=1)}}">Choose another base →</a></section>
+</aside></div>{% endblock %}

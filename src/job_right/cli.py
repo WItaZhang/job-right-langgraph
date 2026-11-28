@@ -27,8 +27,12 @@ def _parser():
     for name in ("init", "profile", "recommend", "history", "demo"):
         commands.add_parser(name, parents=[common])
     web = commands.add_parser("web", parents=[common], help="Open the local preference workspace")
+    web.add_argument("--writer-model", help="Offer an opt-in provider:model for evidence-checked writing")
     web.add_argument("--port", type=int, default=8765)
     web.add_argument("--model", default="fixture")
+    web.add_argument(
+        "--resume-project", type=Path, help="Trusted Resume and Interview checkout for TeX import"
+    )
     propose = commands.add_parser("propose", parents=[common])
     propose.add_argument("--id")
     propose.add_argument("--model", default="fixture")
@@ -132,7 +136,9 @@ def main(argv=None):
         if args.command == "web":
             from .web import serve
 
-            serve(directory or Path(".job-right"), args.port, args.model)
+            serve(
+                directory or Path(".job-right"), args.port, args.model, args.resume_project, args.writer_model
+            )
             return 0
         with Workflow(directory or Path(".job-right")) as wf:
             data, rendered = _run(wf, args)

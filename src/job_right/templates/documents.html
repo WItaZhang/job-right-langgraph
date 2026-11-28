@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+{% block main %}
+<div class="pagehead"><div><h1>Documents</h1><p>Your résumés and cover letters, organized by role.</p></div>
+<a class="primary" href="{{ url_for('prepare') }}">Add a job description →</a></div>
+{% if packets %}
+<div class="panel timeline">{% for p in packets %}
+<a class="entry" href="{{ url_for('packet_view',packet_id=p.id) }}"><div><small>{{ p.target.employer }}</small>
+<h3>{{ p.target.title }}</h3><span>Résumé and cover letter · v{{ p.revision }}</span></div><b>→</b></a>
+{% endfor %}</div>
+{% else %}
+<section class="panel block empty-docs"><h2>Start with a role</h2><p>Choose a listing in Matches or bring a job description. Add your base résumé once to prepare both documents.</p>
+<a href="{{ url_for('matches') }}">Browse job matches →</a></section>{% endif %}
+{% endblock %}

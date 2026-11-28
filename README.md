@@ -15,7 +15,7 @@ Open **[Job Right on this computer](http://127.0.0.1:8765/)**. The first launch 
 ### Try a review
 
 1. Browse **Matches**, switch to **Filtered** to see why a listing was excluded, then open **Preferences** to inspect the saved profile.
-2. On a narrow screen, tap **Preview a change** to jump to **Preference studio**. In the studio, choose **Remote only** and **Preview change**. Compare the old and proposed work arrangements. Fernhill Freight’s saved hybrid role would disappear. Expand **Listing changes** to see ranks and filter reasons. Refresh the page or reopen the latest pending review from Matches.
+2. On a narrow screen, tap **Preview a change** to jump to **Refine your matches**. There, choose **Remote only** and **Preview change**. Compare the old and proposed work arrangements. Fernhill Freight’s saved hybrid role would disappear. Expand **Listing changes** to see ranks and filter reasons. Refresh the page or reopen the latest pending review from Matches.
 3. Choose **Reject change**. Profile v1 remains available in Preferences. Try **Keep Fernhill** (also available as a suggested exception in a pending review) to preview the remote-only rule with an employer exception. Approve it, then inspect the updated matches and the saved revision in **Activity**.
 4. To try a version conflict, leave a **Salary floor** review pending. Open Matches in a second tab, preview **Prefer Rust** and approve it. Return to the first tab and approve the older review. Select **Use this feedback** to generate a fresh preview from the current profile.
 
@@ -69,3 +69,21 @@ uv run --locked --group browser python checks/browser_smoke.py
 ```
 
 This project grew out of [Job Right](https://github.com/WItaZhang/codex-job-agent). See the [workflow specification](SPEC.md) and [license](LICENSE).
+
+## Tailor a résumé and cover letter
+
+Select **Tailor documents** on a listing or **Bring a job description** for your own role. Paste a résumé, choose a text file, or try the clearly labeled fictional example. **Prepare résumé & letter** saves the pair. On your next role, the last base is already filled in.
+
+The offline editor prioritizes relevant accomplishments within each employer or project. It preserves dates, metrics and source text. The letter draws on specific lines of the tailored résumé. Check **Evidence used** and **Unmatched terms**, edit either document, and revisit earlier versions. Saving a résumé revision rebuilds its letter. Download both documents and the evidence map as a ZIP, or open **Print / PDF** for a single document.
+
+**Resume and Interview interchange.** Download the listing’s `jd.md` for a tailoring run. Import the run’s text résumé and optional `cover_letter/letter.txt` through **Import existing files**. To read a selected `.tex` base locally, start with `uv run --locked job-right web --resume-project /path/to/resume-and-interview`. This calls that trusted checkout’s text converter on the selected file. Generation uses the local document editor. The original project’s evaluator and publishing workflow remain available in that checkout.
+
+For model-assisted writing locally, start with `web --writer-model provider:model` and select that model in the document form. Only then are the role, experience bullets and optional personal note sent to the provider. The writer prioritizes existing bullets and cites its letter, followed by a separate factual check. Review the finished version before use. Hosted drafting stays offline.
+
+## Hosted workspace
+
+The public Flask app uses a signed, secure browser cookie to identify a private workspace. Vercel Private Blob stores its application database and LangGraph checkpoint database together with conditional writes. Public visitors can use the sample catalog or supply their own job description and base résumé. Keep the cookie to reopen saved work in this browser. The local CLI continues to use its own SQLite directory.
+
+The production entry point is `app.py`. Set a stable random `JOB_RIGHT_SESSION_KEY` and connect a private Blob store with `BLOB_READ_WRITE_TOKEN`. The hosted product uses offline rules. Job descriptions and applicant materials stay inside the visitor’s hosted workspace.
+
+Run the document browser check with `uv run --locked --group browser python checks/documents_smoke.py`. Both browser checks accept `--url` to exercise a deployed product in a fresh browser context.

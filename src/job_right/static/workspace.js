@@ -31,3 +31,10 @@ window.addEventListener("pageshow", () => {
     button.textContent = button.dataset.original;
   });
 });
+document.getElementById("load-sample")?.addEventListener("click", () => {
+  const field = document.getElementById("base");
+  if (field.value.trim() && !window.confirm("Replace the text in this form with the fictional example?")) return;
+  field.value = document.getElementById("sample-resume").content.textContent.trim();
+  field.focus();
+});
+document.getElementById("print-doc")?.addEventListener("click", () => window.print());

@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
+import os
 import secrets
 from contextlib import suppress
+from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Flask, abort, flash, g, redirect, render_template, request, url_for
+from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import HTTPException, SecurityError
 
 from .chat_models import resolve_chat_model
+from .documents_web import register_documents
 from .errors import AlreadyInitialized, JobRightError, ProposalIdInUse, UnknownProposal
 from .graph import Workflow
+from .hosted import bind_hosted, open_workspace
 from .ranking import recommend
 
 FIELDS = {
@@ -69,24 +73,53 @@ def _effects(proposal, jobs):
     return effects
 
 
-def create_app(data_dir: Path, model="fixture"):
+def create_app(
+    data_dir: Path, model="fixture", *, resume_project=None, hosted=None, secret=None, writer=None
+):
     app = Flask(__name__)
     app.config.update(
-        SECRET_KEY=secrets.token_hex(32),
+        SECRET_KEY=secret or secrets.token_hex(32),
         TRUSTED_HOSTS=["localhost", "127.0.0.1"],
-        MAX_CONTENT_LENGTH=32_768,
+        MAX_CONTENT_LENGTH=200_000,
         SESSION_COOKIE_SAMESITE="Strict",
     )
     token = secrets.token_urlsafe(32)
     model_label = resolve_chat_model(model).label
-    with Workflow(data_dir) as wf:
-        if not wf.store.is_initialized():
-            with suppress(AlreadyInitialized):  # Another local process may seed first.
-                wf.initialize()
+    if hosted:
+        app.config.update(
+            TRUSTED_HOSTS=[
+                host
+                for host in (
+                    os.getenv("VERCEL_URL"),
+                    os.getenv("VERCEL_PROJECT_PRODUCTION_URL"),
+                    os.getenv("VERCEL_BRANCH_URL"),
+                    "job-right-langgraph.vercel.app",
+                )
+                if host
+            ],
+            SESSION_REFRESH_EACH_REQUEST=False,
+            SESSION_COOKIE_HTTPONLY=True,
+            SESSION_COOKIE_SECURE=True,
+            PERMANENT_SESSION_LIFETIME=timedelta(days=90),
+            SESSION_COOKIE_NAME="job_right_workspace",
+        )
+        bind_hosted(app, hosted)
+    else:
+        with Workflow(data_dir) as wf:
+            if not wf.store.is_initialized():
+                with suppress(AlreadyInitialized):
+                    wf.initialize()
+
+    def form_token():
+        return session.get("csrf", "") if hosted else token
+
+    @app.context_processor
+    def view_settings():
+        return {"token": form_token(), "hosted": bool(hosted)}
 
     def workflow():
         if "workflow" not in g:
-            g.workflow = Workflow(data_dir)
+            g.workflow = open_workspace(hosted) if hosted else Workflow(data_dir)
         return g.workflow
 
     @app.teardown_appcontext
@@ -104,7 +137,7 @@ def create_app(data_dir: Path, model="fixture"):
                 origin is not None
                 and origin != host
                 or request.headers.get("Sec-Fetch-Site") == "cross-site"
-                or not secrets.compare_digest(request.form.get("token", "").encode(), token.encode())
+                or not secrets.compare_digest(request.form.get("token", "").encode(), form_token().encode())
             ):
                 abort(403, "Reopen this page from the local workspace, then try again.")
 
@@ -124,7 +157,6 @@ def create_app(data_dir: Path, model="fixture"):
 
     app.jinja_env.filters.update(pretty=pretty, field_name=field_name)
     app.jinja_env.globals.update(
-        token=token,
         examples=EXAMPLES,
         model_label=model_label,
         fixture=model_label.startswith("fixture"),
@@ -228,11 +260,17 @@ def create_app(data_dir: Path, model="fixture"):
             "saved. You can return to Matches to retry your feedback.",
         ), 500
 
+    converter = None
+    if resume_project:
+        converter = Path(resume_project).resolve() / "scripts" / "tex_text.py"
+        if not converter.is_file():
+            raise ValueError("The selected Resume and Interview project has no scripts/tex_text.py.")
+    register_documents(app, workflow, converter, writer)
     return app
 
 
-def serve(data_dir, port, model):
+def serve(data_dir, port, model, resume_project=None, writer=None):
     if not 1 <= port <= 65535:
         raise ValueError("Choose a port between 1 and 65535.")
-    app = create_app(data_dir, model)
+    app = create_app(data_dir, model, resume_project=resume_project, writer=writer)
     app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)

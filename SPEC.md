@@ -6,9 +6,9 @@ Show, end to end and offline, how a job seeker's preference change is proposed b
 ## Risk: High (concurrent and duplicate decisions write persisted preference data)
 
 ## Scope
-- Not doing: job applications or ApplyPilot, form filling, submissions, scraping, outreach, automation on external hiring sites, real candidate data, stored credentials, default remote tracing, paid model calls in tests or the demo, a LangMem-vs-baseline comparison (dropped by the owner).
+- Not doing: job applications or ApplyPilot, form filling, submissions, scraping, outreach, automation on external hiring sites, personal data in the repository, stored credentials, default remote tracing, paid model calls in tests or the demo, a LangMem-vs-baseline comparison (dropped by the owner).
 - The local Web UI shares the CLI workflow, checkpointer and app store. Real browser verification on loopback is in scope.
-- Ask first: any publication other than a fast-forward push of this repo's `origin/main` after clean-clone verification.
+- Publication approved for this repository and its Vercel product. X and YouTube distribution is left to the owner.
 
 ## Key decisions
 - Package `job_right` (src layout, uv, Python >=3.11,<3.14, committed `uv.lock`). CLI `job-right` with `init | profile | recommend | propose | show | approve | reject | history | demo`, plus `web` for the local product and `--data-dir` (default `./.job-right`).
@@ -51,3 +51,10 @@ Show, end to end and offline, how a job seeker's preference change is proposed b
 - Browse ranked and filtered listings, inspect saved preferences, try fixture feedback examples, compare changes and individual jobs, then approve or reject. Decision history links back to each review.
 - Preserve the candidate digest from the displayed form. A stale approval offers a fresh preview with the original feedback. An earlier decision remains authoritative on resubmission.
 - Verify desktop and narrow-screen flows in a real browser, including refresh, rejection, approval and conflicts between reviews.
+
+
+## Application materials and hosting
+
+A listing or a pasted job description leads to a versioned résumé and cover letter. Keep claims grounded in the selected base, group experience by its original employer, and show source evidence and unmatched terms. Support text interchange and optional local TeX import from Resume and Interview. The public source and browser checks use fictional examples only.
+
+The Vercel entry point must isolate visitors and survive cold starts. Commit the paired SQLite snapshots to private storage with an ETag precondition. Test the full journey from a fresh browser, including document edits, export, conflicts and isolation.

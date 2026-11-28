@@ -3,15 +3,15 @@
 {% block main %}
   <section class="hero">
     <div>
-      <span class="tag darktag">Profile v{{ current.revision }}</span>
+      <a class="profile-version" href="{{ url_for('preferences') }}">Saved preferences · v{{ current.revision }}</a>
       <h1>Your job matches</h1>
-      <p>{{ current.profile.roles|pretty }} roles ranked by your saved preferences.</p>
+      <p>{{ current.profile.roles|pretty }} roles, ordered by fit.</p>
     </div>
     <div class="meter">
       <div>
         <strong>{{ ranked.shown|length }}<small> / {{ jobs|length }}</small>
         </strong>
-        <span>synthetic listings match</span>
+        <span>sample listings match</span>
       </div>
       <div class="ticks" aria-hidden="true">
         {% for job in jobs %}
@@ -69,6 +69,7 @@
                   {% endfor %}
                 </div>
               {% endif %}
+              <a class="materials-link" href="{{ url_for('prepare', job=job.id) }}">Tailor documents <span aria-hidden="true">→</span></a>
             </div>
           </article>
         {% else %}
@@ -84,9 +85,9 @@
                id="studio"
                tabindex="-1"
                aria-labelledby="studio-title">
-        <div class="panel-icon" aria-hidden="true">✎</div>
-        <h2 id="studio-title">Preference studio</h2>
-        <p>Describe a change to see how it would affect your matches.</p>
+
+        <h2 id="studio-title">Refine your matches</h2>
+        <p>Preview a preference against jobs you saved or passed.</p>
         {% for message in get_flashed_messages(category_filter=['studio']) %}
           <p class="notice" role="status">{{ message }}</p>
         {% endfor %}
@@ -102,7 +103,7 @@
                     required
                     rows="3"
                     placeholder="Only show me remote roles.">{{ feedback }}</textarea>
-          <div class="example-label">Try an example</div>
+          <div class="example-label">Try a change</div>
           <div class="examples">
             {% for name, text in examples.items() %}
               <a href="{{ url_for('matches', example=text, _anchor='studio') }}"
@@ -113,7 +114,7 @@
             Preview change <span aria-hidden="true">→</span>
           </button>
         </form>
-        <div class="studio-note">{{ 'Deterministic offline fixture' if fixture else model_label }} · Approval required</div>
+        <div class="studio-note">{{ 'Offline rules' if fixture else model_label }} · Approval required</div>
       </section>
     </aside>
   </div>

@@ -18,3 +18,10 @@ dist/
 .claude/tests-locked
 .claude/settings.local.json
 .DS_Store
+
+# Deployment metadata and local secrets
+.vercel/
+.env*
+
+# Rendered launch media
+artifacts/

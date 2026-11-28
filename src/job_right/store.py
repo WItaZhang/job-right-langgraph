@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field, computed_field
 
 from .domain import Job, JobSeekerProfile, Label, ProfileChange, canonical_json, profile_digest
 from .errors import AlreadyInitialized, CandidateMismatch, NotInitialized, UnknownProposal
+from .materials import Packet
 from .replay import ReplayReport
 
 STORE_FILENAME = "job_right.sqlite"
@@ -29,6 +30,13 @@ ProposalStatus = Literal["pending", "approved", "rejected", "stale"]
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS packets (
+    id TEXT PRIMARY KEY,
+    target_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    UNIQUE(target_id, revision)
+);
 CREATE TABLE IF NOT EXISTS labels (
     job_id TEXT PRIMARY KEY REFERENCES jobs (id),
     verdict TEXT NOT NULL CHECK (verdict IN ('wanted', 'rejected')),
@@ -190,6 +198,37 @@ class ProfileStore:
     def labels(self) -> list[Label]:
         rows = self._db.execute("SELECT job_id, verdict, note FROM labels ORDER BY job_id")
         return [Label(job_id=r["job_id"], verdict=r["verdict"], note=r["note"]) for r in rows]
+
+    def packets(self, target_id=None):
+        if target_id is None:
+            rows = self._db.execute("SELECT data FROM packets ORDER BY rowid DESC")
+        else:
+            rows = self._db.execute(
+                "SELECT data FROM packets WHERE target_id = ? ORDER BY revision DESC", (target_id,)
+            )
+        return [Packet.model_validate_json(row["data"]) for row in rows]
+
+    def packet(self, packet_id):
+        row = self._db.execute("SELECT data FROM packets WHERE id = ?", (packet_id,)).fetchone()
+        return Packet.model_validate_json(row["data"]) if row else None
+
+    def save_packet(self, packet):
+        with self._write():
+            existing = self.packet(packet.id)
+            if existing == packet:
+                return existing
+            latest = self._db.execute(
+                "SELECT COALESCE(MAX(revision), 0) FROM packets WHERE target_id = ?", (packet.target.id,)
+            ).fetchone()[0]
+            if existing or latest + 1 != packet.revision:
+                raise CandidateMismatch(
+                    "A newer document version was saved. Open the latest version in Documents."
+                )
+            self._db.execute(
+                "INSERT INTO packets VALUES (?, ?, ?, ?)",
+                (packet.id, packet.target.id, packet.revision, packet.model_dump_json()),
+            )
+        return packet
 
     # --- proposals ---------------------------------------------------------------------------
 

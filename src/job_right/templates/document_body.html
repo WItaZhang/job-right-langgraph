@@ -1,0 +1,10 @@
+{% if letter %}
+{% for paragraph in p.letter.split('\n\n') %}<p class="letter-paragraph">{{ paragraph }}</p>{% endfor %}
+{% else %}
+{% for row in rows %}
+{% if row.kind=='name' %}<h2 class="applicant">{{ row.text }}</h2>
+{% elif row.kind=='heading' %}<h3 class="resume-heading">{{ row.text }}</h3>
+{% elif row.kind=='bullet' %}<p class="resume-bullet">{{ row.text }}</p>
+{% else %}<p class="resume-line">{{ row.text }}</p>{% endif %}
+{% endfor %}
+{% endif %}

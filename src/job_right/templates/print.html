@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ p.target.employer }} · {{ 'Cover letter' if letter else 'Résumé' }}</title>
+<link rel="stylesheet" href="{{url_for('static',filename='workspace.css')}}"><script defer src="{{ url_for('static',filename='workspace.js') }}"></script></head>
+<body class="print-view"><header><a href="{{url_for('packet_view',packet_id=p.id,tab='letter' if letter else 'resume')}}">← Document</a><button class="primary" id="print-doc">Print / Save PDF</button></header>
+<main class="paper">{% include 'document_body.html' %}</main></body></html>

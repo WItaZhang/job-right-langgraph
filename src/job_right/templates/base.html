@@ -19,12 +19,12 @@
           <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Job Right
         </a>
         <nav aria-label="Workspace">
-          {% for endpoint, name in [('matches', 'Matches'), ('preferences', 'Preferences'), ('activity', 'Activity')] %}
+          {% for endpoint, name in [('matches', 'Matches'), ('preferences', 'Preferences'), ('activity', 'Activity'), ('documents', 'Documents')] %}
             <a href="{{ url_for(endpoint) }}"
-               {% if request.endpoint == endpoint or (endpoint == 'activity' and request.endpoint == 'review') %}aria-current="page"{% endif %}>{{ name }}</a>
+               {% if request.endpoint == endpoint or (endpoint == 'documents' and request.endpoint in ['packet_view','prepare','packet_edit','create_packet']) or (endpoint == 'activity' and request.endpoint == 'review') %}aria-current="page"{% endif %}>{{ name }}</a>
           {% endfor %}
         </nav>
-        <span class="model"><span></span>{{ 'Offline fixture' if fixture else model_label }}</span>
+        <a class="new-role" href="{{url_for('prepare')}}">Bring a job description <span aria-hidden="true">↗</span></a>
       </div>
     </header>
     <main class="frame" id="main" tabindex="-1">
@@ -35,7 +35,7 @@
     </main>
     <footer class="frame footer">
       <span>Job Right</span>
-      <span>Local workspace <b>·</b> Synthetic listings and ratings</span>
+      <span>{{ 'Private browser workspace' if hosted else 'Local workspace' }} <b>·</b> {{ 'Offline preference rules' if fixture else model_label }}</span>
     </footer>
   </body>
 </html>

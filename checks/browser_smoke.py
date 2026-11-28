@@ -7,7 +7,7 @@ import socket
 import subprocess
 import sys
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.error import URLError
@@ -47,9 +47,9 @@ def workspace():
                 process.wait(timeout=10)
 
 
-def scenario(browser, width, height, screenshots):
+def scenario(browser, width, height, screenshots, public_url=None):
     with (
-        workspace() as url,
+        nullcontext(public_url) if public_url else workspace() as url,
         browser.new_context(
             viewport={"width": width, "height": height}, is_mobile=width < 680, has_touch=width < 680
         ) as context,
@@ -167,7 +167,8 @@ def scenario(browser, width, height, screenshots):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--screenshots", type=Path)
+    parser.add_argument("--url")
     args = parser.parse_args()
     with sync_playwright() as pw, pw.chromium.launch() as browser:
         for width, height in [(1440, 900), (390, 844)]:
-            scenario(browser, width, height, args.screenshots)
+            scenario(browser, width, height, args.screenshots, args.url)
