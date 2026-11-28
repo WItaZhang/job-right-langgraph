@@ -26,6 +26,15 @@ def scenario(browser, url, width, height, screenshots=None):
                 page.screenshot(path=screenshots / f"{width}-{name}.png")
 
         page.goto(url)
+        page.get_by_role("link", name="Remote only", exact=True).click()
+        page.get_by_role("button", name="Preview change").click()
+        expect(page.locator(".risk")).to_contain_text("Fernhill Freight")
+        page.get_by_role("link", name="Try a Fernhill Freight exception").click()
+        page.get_by_role("button", name="Preview change").click()
+        expect(page.get_by_text("Saved jobs newly hidden")).to_have_count(0)
+        page.get_by_role("button", name="Approve change").click()
+        expect(page.get_by_text("Saved as profile v2.")).to_be_visible()
+        page.get_by_role("link", name="View job matches").click()
         page.locator(".job").filter(has_text="Fernhill Freight").first.get_by_role(
             "link", name="Tailor documents"
         ).click()
@@ -63,7 +72,9 @@ def scenario(browser, url, width, height, screenshots=None):
         expect(page.locator(".paper .resume-bullet").first).to_contain_text("Terraform")
         page.get_by_role("link", name="Documents", exact=True).click()
         expect(page.locator(".entry")).to_have_count(2)
-        print(f"{width}×{height}: résumé, letter, custom JD, revision, refresh, ZIP and PDF passed.")
+        print(
+            f"{width}×{height}: preference repair through tailored documents, custom JD, ZIP and PDF passed."
+        )
         return private_url
 
 

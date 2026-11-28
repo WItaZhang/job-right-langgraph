@@ -1,6 +1,8 @@
-# Job Right · Preference Replay
+# Job Right
 
 Review a change to your job preferences before it reshapes your recommendations. Try a remote-only rule and see exactly which saved hybrid role it would hide, why it drops out, and which employer exception could keep it.
+
+Then open the role and prepare a résumé and cover letter from your own experience. [Try Job Right in your browser](https://job-right-langgraph.vercel.app/).
 
 ## Open the local product
 
@@ -87,3 +89,5 @@ For model-assisted writing locally, start with `web --writer-model provider:mode
 The production entry point is `app.py`. Set a stable random `JOB_RIGHT_SESSION_KEY` and connect a private Blob store with `BLOB_READ_WRITE_TOKEN`. The hosted product uses offline rules. Job descriptions and applicant materials stay inside the visitor’s hosted workspace.
 
 Run the document browser check with `uv run --locked --group browser python checks/documents_smoke.py`. Both browser checks accept `--url` to exercise a deployed product in a fresh browser context.
+
+The [launch film source and recording instructions](launch/README.md) reproduce the desktop and vertical product walkthroughs.
