@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% block title %}Job matches{% endblock %}
+{% block main %}
+<section class="hero"><div><span class="tag darktag">Profile v{{ current.revision }}</span>
+<h1>Your job matches</h1><p>{{ current.profile.roles|pretty }} roles ranked by your saved preferences.</p></div>
+<div class="meter"><div><strong>{{ ranked.shown|length }}<small> / {{ jobs|length }}</small></strong><span>listings match</span></div>
+<div class="ticks" aria-hidden="true">{% for job in jobs %}<i {% if loop.index > ranked.shown|length %}class="off"{% endif %}></i>{% endfor %}</div>
+<a href="{{ url_for('preferences') }}">View saved preferences <span aria-hidden="true">↗</span></a></div></section>
+{% if pending %}<div class="pendingline"><strong>{{ pending|length }} pending {{ 'review' if pending|length==1 else 'reviews' }}</strong> <a href="{{ url_for('review', proposal_id=pending[0].id) }}">Resume latest review →</a></div>{% endif %}
+<div class="board"><section class="listings" aria-labelledby="listing-title">
+<div class="sectionhead"><h2 id="listing-title">Listings</h2><div class="switch" aria-label="Listing filter">
+<a href="{{ url_for('matches', _anchor='listing-title') }}" {% if not filtered %}aria-current="true"{% endif %}>Matching {{ ranked.shown|length }}</a>
+<a href="{{ url_for('matches', view='filtered', _anchor='listing-title') }}" {% if filtered %}aria-current="true"{% endif %}>Filtered {{ ranked.hidden|length }}</a></div></div>
+<div class="jobs">{% for row in (ranked.hidden if filtered else ranked.shown) %}{% set job=jobs[row.job_id] %}
+<article class="job"><span class="avatar tone{{ (job.id[-3:]|int) % 5 }}" aria-hidden="true">{{ job.employer.split()[0][:1] }}{{ job.employer.split()[-1][:1] }}</span>
+<div class="jobinfo"><div class="company">{{ job.employer }} {% if job.id in labels %}<span class="rating {{ labels[job.id].verdict }}">{{ 'Saved' if labels[job.id].verdict=='wanted' else 'Passed' }}</span>{% endif %}</div>
+<h3>{{ job.title }}</h3><p class="jobmeta">{{ job.work_mode|capitalize }}{% if job.work_mode != 'remote' %} · {{ job.city }}{% endif %} <b>·</b> ${{ job.salary_min//1000 }}k–${{ job.salary_max//1000 }}k</p>
+{% if filtered %}<ul class="reasons">{% for reason in row.reasons %}<li>{{ reason.detail }}</li>{% endfor %}</ul>
+{% else %}<div class="skills">{% for skill in job.skills %}<span>{{ skill }}</span>{% endfor %}</div>{% endif %}</div></article>
+{% else %}<div class="empty"><h3>{{ 'All listings match' if filtered else 'No matching listings' }}</h3><p>{{ 'Every synthetic listing meets the saved rules.' if filtered else 'Inspect the filtered listings or preview a broader preference.' }}</p></div>{% endfor %}</div></section>
+<aside class="side"><section class="panel studio" id="studio" aria-labelledby="studio-title">
+<div class="panel-icon" aria-hidden="true">✎</div><h2 id="studio-title">Preference studio</h2>
+<p>Describe a change to see how it would affect your matches.</p>
+<form method="post" action="{{ url_for('propose') }}" data-busy="Building preview…">
+<input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="proposal_id" value="{{ new_id() }}">
+<label for="feedback">Your feedback</label><textarea id="feedback" name="feedback" maxlength="1500" required rows="3" placeholder="Only show me remote roles.">{{ feedback }}</textarea>
+<div class="example-label">Try an example</div><div class="examples">{% for name, text in examples.items() %}
+<a href="{{ url_for('matches', example=text, _anchor='studio') }}" data-example="{{ text }}">{{ name }}</a>{% endfor %}</div>
+<button class="primary wide" type="submit">Preview change <span aria-hidden="true">→</span></button>
+</form><div class="studio-note">{{ 'Deterministic offline fixture' if fixture else model_label }} · Approval required</div></section>
+</aside></div>
+{% endblock %}

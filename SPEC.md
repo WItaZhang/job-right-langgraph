@@ -6,7 +6,8 @@ Show, end to end and offline, how a job seeker's preference change is proposed b
 ## Risk: High (concurrent and duplicate decisions write persisted preference data)
 
 ## Scope
-- Not doing: job applications or ApplyPilot, form filling, submissions, scraping, outreach, browser automation, real candidate data, credentials, remote tracing, web UI, paid model calls in tests or the demo, a LangMem-vs-baseline comparison (dropped by the owner).
+- Not doing: job applications or ApplyPilot, form filling, submissions, scraping, outreach, automation on external hiring sites, real candidate data, stored credentials, default remote tracing, paid model calls in tests or the demo, a LangMem-vs-baseline comparison (dropped by the owner).
+- The local Web UI shares the CLI workflow, checkpointer and app store. Real browser verification on loopback is in scope.
 - Ask first: any publication other than a fast-forward push of this repo's `origin/main` after clean-clone verification.
 
 ## Key decisions
@@ -42,3 +43,11 @@ Show, end to end and offline, how a job seeker's preference change is proposed b
 <!-- date · finding → decision -->
 - 2026-11-21 · Coordinator review → case 7 adds a reversal of an approved preference; case 5 adds "racing decisions persist only the reviewed candidate" (approval carries the reviewed candidate's digest).
 - 2026-11-22 · Test-mapping review → example 1 names the actual fixture employer (Fernhill Freight); agreement figures in tests describe the synthetic fixtures only.
+
+## Local Web product
+- `job-right web` initializes an empty synthetic workspace and serves it on 127.0.0.1. Refreshing a review reloads its saved candidate, replay and decision. Writes require a same-site form token and a trusted local host.
+- Browse ranked and filtered listings, inspect saved preferences, try fixture feedback examples, compare changes and individual jobs, then approve or reject. Decision history links back to each review.
+- Preserve the candidate digest from the displayed form. A stale approval offers a fresh preview with the original feedback. An earlier decision remains authoritative on resubmission.
+- Verify desktop and narrow-screen flows in a real browser, including refresh, rejection, approval and conflicts between reviews.
+
+2026-11-28 · Owner added a local Web product and local browser acceptance to the original CLI scope.

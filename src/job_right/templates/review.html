@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}Preference review{% endblock %}
+{% block main %}<a class="back" href="{{ url_for('activity') }}">← Review activity</a>
+<div class="pagehead reviewhead"><div><span class="status {{ p.status }}">{{ p.status|capitalize }}</span><h1>Preference review</h1><p class="quote">“{{ p.feedback }}”</p></div></div>
+{% if p.status == 'stale' %}<div class="notice"><strong>This review is out of date.</strong> It used profile v{{ p.base_revision }}. Preview the same feedback against v{{ current.revision }} to review it again. <a href="{{ url_for('matches', retry=p.id, _anchor='studio') }}">Use this feedback →</a></div>
+{% elif p.status == 'approved' %}<div class="success"><strong>Saved as profile v{{ p.applied_revision }}.</strong> <a href="{{ url_for('matches') }}">View job matches →</a></div>
+{% elif p.status == 'rejected' %}<div class="notice"><strong>Review rejected.</strong> The proposal was closed without saving a revision. <a href="{{ url_for('matches', _anchor='studio') }}">Try another change →</a></div>{% endif %}
+<div class="board reviewboard"><div>
+<section class="panel block"><h2>Proposed edits</h2>{% for edit in p.changes %}<div class="edit"><h3>{{ edit.field|field_name }}</h3><div class="compare"><div><small>Before · v{{ p.base_revision }}</small>{{ edit.before|pretty(edit.field) }}</div><div><small>Proposed</small>{{ edit.after|pretty(edit.field) }}</div></div></div>{% endfor %}</section>
+<section class="panel block"><h2>Replay on earlier ratings</h2><p class="sub">Ratings matched before {{ p.replay.agreement_before }}/{{ p.replay.total }} · after {{ p.replay.agreement_after }}/{{ p.replay.total }}</p>
+{% for title, rows, warn in [('Saved jobs newly hidden',p.replay.wanted_newly_hidden,true),('Passed jobs newly shown',p.replay.rejected_newly_shown,true),('Saved jobs newly shown',p.replay.wanted_newly_shown,false),('Passed jobs newly hidden',p.replay.rejected_newly_hidden,false)] %}{% if rows %}<div class="impact {{ 'risk' if warn else '' }}"><h3>{{ title }} · {{ rows|length }}</h3>
+{% for row in rows %}<article><strong>{{ row.title }}</strong><div>{{ row.employer }}</div><p class="labelnote">{{ labels[row.job_id].note }}</p>
+{% for reason in (row.before if row.after.shown else row.after).reasons %}<p>{{ reason.detail|capitalize }}.</p>{% if not row.after.shown and row.verdict=='wanted' %}<p><b>To keep it</b> · {{ reason.fix }}</p>{% endif %}{% endfor %}</article>{% endfor %}</div>{% endif %}{% endfor %}
+{% if not (p.replay.wanted_newly_hidden or p.replay.rejected_newly_shown or p.replay.wanted_newly_shown or p.replay.rejected_newly_hidden) %}<p>No rated job changes visibility.</p>{% endif %}</section>
+<section class="panel block"><h2>Listing changes <span class="count">{{ effects|length }}</span></h2><p class="sub">Rank and visibility across the full synthetic catalog.</p>
+{% for job,a,b,old,new in effects %}<div class="effect"><div><strong>{{ job.title }}</strong><div>{{ job.employer }}</div></div><div><b>{{ '#' ~ a if a else 'Filtered' }} → {{ '#' ~ b if b else 'Filtered' }}</b>
+{% if old.score != new.score %}<small>Score {{ old.score }} → {{ new.score }}</small>{% endif %}</div></div>{% else %}<p>Listing ranks and visibility stay the same.</p>{% endfor %}</section>
+</div><aside><section class="panel block decision"><h2>{{ 'Your decision' if p.status=='pending' else 'Review details' }}</h2>
+<p>Based on profile <strong>v{{ p.base_revision }}</strong><br>Current profile <strong>v{{ current.revision }}</strong></p>
+{% if p.status=='pending' %}{% if current.revision != p.base_revision %}<p class="notice">A newer revision is saved. Approving will mark this review stale.</p>{% endif %}
+{% for action, title in [('approve','Approve change'),('reject','Reject change')] %}
+<form method="post" action="{{ url_for('decide', proposal_id=p.id, decision=action) }}" data-busy="Recording decision…">
+<input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="digest" value="{{ p.proposed_digest }}">
+<button class="wide {{ 'primary' if action=='approve' else 'secondary' }}">{{ title }}</button></form>{% endfor %}
+{% endif %}<div class="studio-note">{{ p.model_label }}</div></section></aside></div>{% endblock %}
